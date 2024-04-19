@@ -120,8 +120,8 @@ def pre_check() -> bool:
     util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/inswapper_128.onnx'])
     util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/GFPGANv1.4.onnx'])
     util.conditional_download(download_directory_path, ['https://github.com/csxmli2016/DMDNet/releases/download/v1/DMDNet.pth'])
-    util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/GPEN-BFR-512.onnx'])
-    util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/restoreformer_plus_plus.onnx'])
+    util.conditional_download(download_directory_path, ['https://github.com/facefusion/facefusion-assets/releases/download/models/GPEN-BFR-512.onnx'])
+    util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/restoreformer.onnx'])
     download_directory_path = util.resolve_relative_path('../models/CLIP')
     util.conditional_download(download_directory_path, ['https://huggingface.co/countfloyd/deepfake/resolve/main/rd64-uni-refined.pth'])
     download_directory_path = util.resolve_relative_path('../models/CodeFormer')
@@ -173,12 +173,12 @@ def get_processing_plugins(use_clip):
         processors += ",dmdnet"
     elif roop.globals.selected_enhancer == 'GPEN':
         processors += ",gpen"
-    elif roop.globals.selected_enhancer == 'Restoreformer++':
-        processors += ",restoreformer++"
+    elif roop.globals.selected_enhancer == 'Restoreformer':
+        processors += ",restoreformer"
     return processors
 
 
-def live_swap(frame, swap_mode, use_clip, clip_text, imagemask, selected_index = 0):
+def live_swap(frame, swap_mode, use_clip, clip_text, selected_index = 0):
     global process_mgr
 
     if frame is None:
@@ -187,10 +187,7 @@ def live_swap(frame, swap_mode, use_clip, clip_text, imagemask, selected_index =
     if process_mgr is None:
         process_mgr = ProcessMgr(None)
     
-    if len(roop.globals.INPUT_FACESETS) <= selected_index:
-        selected_index = 0
-    options = ProcessOptions(get_processing_plugins(use_clip), roop.globals.distance_threshold, roop.globals.blend_ratio,
-                              swap_mode, selected_index, clip_text,imagemask)
+    options = ProcessOptions(get_processing_plugins(use_clip), roop.globals.distance_threshold, roop.globals.blend_ratio, swap_mode, selected_index, clip_text)
     process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
     newframe = process_mgr.process_frame(frame)
     if newframe is None:
@@ -205,7 +202,7 @@ def preview_mask(frame, clip_text):
     maskimage = np.zeros((frame.shape), np.uint8)
     if process_mgr is None:
         process_mgr = ProcessMgr(None)
-    options = ProcessOptions("mask_clip2seg", roop.globals.distance_threshold, roop.globals.blend_ratio, "None", 0, clip_text, None)
+    options = ProcessOptions("mask_clip2seg", roop.globals.distance_threshold, roop.globals.blend_ratio, "None", 0, clip_text)
     process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
     maskprocessor = next((x for x in process_mgr.processors if x.processorname == 'clip2seg'), None)
     return process_mgr.process_mask(maskprocessor, frame, maskimage)
@@ -214,7 +211,7 @@ def preview_mask(frame, clip_text):
 
 
 
-def batch_process(files:list[ProcessEntry], use_clip, new_clip_text, use_new_method, imagemask, progress, selected_index = 0) -> None:
+def batch_process(files:list[ProcessEntry], use_clip, new_clip_text, use_new_method, progress) -> None:
     global clip_text, process_mgr
 
     roop.globals.processing = True
@@ -249,10 +246,8 @@ def batch_process(files:list[ProcessEntry], use_clip, new_clip_text, use_new_met
 
     if process_mgr is None:
         process_mgr = ProcessMgr(progress)
-    mask = imagemask["layers"][0] if imagemask is not None else None
-    if len(roop.globals.INPUT_FACESETS) <= selected_index:
-        selected_index = 0
-    options = ProcessOptions(get_processing_plugins(use_clip), roop.globals.distance_threshold, roop.globals.blend_ratio, roop.globals.face_swap_mode, selected_index, new_clip_text, mask)
+    
+    options = ProcessOptions(get_processing_plugins(use_clip), roop.globals.distance_threshold, roop.globals.blend_ratio, roop.globals.face_swap_mode, 0, new_clip_text)
     process_mgr.initialize(roop.globals.INPUT_FACESETS, roop.globals.TARGET_FACES, options)
 
     if(len(imagefiles) > 0):

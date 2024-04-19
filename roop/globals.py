@@ -33,16 +33,12 @@ default_det_size = True
 
 no_face_action = 0
 
-processing = False
-
-g_current_face_analysis = None
-g_desired_face_analysis = None
+processing = False 
 
 FACE_ENHANCER = None
 
 INPUT_FACESETS = []
 TARGET_FACES = []
-
 
 IMAGE_CHAIN_PROCESSOR = None
 VIDEO_CHAIN_PROCESSOR = None

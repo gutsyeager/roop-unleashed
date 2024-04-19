@@ -9,26 +9,33 @@ from typing import List, Any
 def run_ffmpeg(args: List[str]) -> bool:
     commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-y', '-loglevel', roop.globals.log_level]
     commands.extend(args)
-    print ("Running ffmpeg")
+    print (" ".join(commands))
     try:
         subprocess.check_output(commands, stderr=subprocess.STDOUT)
         return True
     except Exception as e:
-        print("Running ffmpeg failed! Commandline:")
-        print (" ".join(commands))
+        print(e)
     return False
 
 
+	# commands = [ 'ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=r_frame_rate', '-of', 'json', target_path ]
+	# output = subprocess.check_output(commands).decode().strip()
+	# try:
+	# 	entries = json.loads(output)
+	# 	for stream in entries.get('streams'):
+	# 		numerator, denominator = map(int, stream.get('r_frame_rate').split('/'))
+	# 		return numerator / denominator
+	# 	return None
+	# except (ValueError, ZeroDivisionError):
+	# 	return 24
 
-def cut_video(original_video: str, cut_video: str, start_frame: int, end_frame: int, reencode: bool):
+
+def cut_video(original_video: str, cut_video: str, start_frame: int, end_frame: int):
     fps = util.detect_fps(original_video)
     start_time = start_frame / fps
     num_frames = end_frame - start_frame
 
-    if reencode:
-        run_ffmpeg(['-ss',  format(start_time, ".2f"), '-i', original_video, '-c:v', roop.globals.video_encoder, '-c:a', 'aac', '-frames:v', str(num_frames), cut_video])
-    else:
-        run_ffmpeg(['-ss',  format(start_time, ".2f"), '-i', original_video,  '-frames:v', str(num_frames), '-c:v' ,'copy','-c:a' ,'copy', cut_video])
+    run_ffmpeg(['-ss',  str(start_time), '-i', original_video, '-c:v', roop.globals.video_encoder, '-c:a', 'aac', '-frames:v', str(num_frames), cut_video])
 
 def join_videos(videos: List[str], dest_filename: str, simple: bool):
     if simple:
@@ -49,9 +56,6 @@ def join_videos(videos: List[str], dest_filename: str, simple: bool):
             inputs.append(v)
             filter += f'[{i}:v:0][{i}:a:0]'
         run_ffmpeg([" ".join(inputs), '-filter_complex', f'"{filter}concat=n={len(videos)}:v=1:a=1[outv][outa]"', '-map', '"[outv]"', '-map', '"[outa]"', dest_filename])    
-
-        #     filter += f'[{i}:v:0][{i}:a:0]'
-        # run_ffmpeg([" ".join(inputs), '-filter_complex', f'"{filter}concat=n={len(videos)}:v=1:a=1[outv][outa]"', '-map', '"[outv]"', '-map', '"[outa]"', dest_filename])    
 
 
 

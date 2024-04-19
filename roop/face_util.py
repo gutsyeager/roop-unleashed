@@ -21,20 +21,15 @@ def get_face_analyser() -> Any:
     global FACE_ANALYSER
 
     with THREAD_LOCK_ANALYSER:
-        if FACE_ANALYSER is None or roop.globals.g_current_face_analysis != roop.globals.g_desired_face_analysis:
-            model_path = resolve_relative_path('..')
-            # removed genderage
-            allowed_modules = roop.globals.g_desired_face_analysis
-            roop.globals.g_current_face_analysis = roop.globals.g_desired_face_analysis
+        if FACE_ANALYSER is None:
             if roop.globals.CFG.force_cpu:
                 print("Forcing CPU for Face Analysis")
                 FACE_ANALYSER = insightface.app.FaceAnalysis(
-                    name="buffalo_l",
-                    root=model_path, providers=["CPUExecutionProvider"],allowed_modules=allowed_modules
+                    name="buffalo_l", providers=["CPUExecutionProvider"]
                 )
             else:
                 FACE_ANALYSER = insightface.app.FaceAnalysis(
-                    name="buffalo_l", root=model_path, providers=roop.globals.execution_providers,allowed_modules=allowed_modules
+                    name="buffalo_l", providers=roop.globals.execution_providers
                 )
             FACE_ANALYSER.prepare(
                 ctx_id=0,
@@ -325,9 +320,4 @@ def trans_points(pts, M):
         return trans_points2d(pts, M)
     else:
         return trans_points3d(pts, M)
-    
-def create_blank_image(width, height):
-    img = np.zeros((height, width, 4), dtype=np.uint8)
-    img[:] = [0,0,0,0]
-    return img
 

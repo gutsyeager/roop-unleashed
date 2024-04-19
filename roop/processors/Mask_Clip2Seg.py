@@ -5,9 +5,12 @@ import torch
 import threading
 from torchvision import transforms
 from clip.clipseg import CLIPDensePredT
+from numpy import asarray
+from typing import Any, List, Callable
 import numpy as np
 
-from roop.typing import Frame
+from roop.typing import Face, Frame
+from roop.utilities import resolve_relative_path
 
 THREAD_LOCK_CLIP = threading.Lock()
 

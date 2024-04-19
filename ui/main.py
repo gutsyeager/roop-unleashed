@@ -45,6 +45,7 @@ def run():
             overflow-y: auto !important;
         }
 """
+    uii.ui_live_cam_active = roop.globals.CFG.live_cam_start_active
 
     while run_server:
         server_name = roop.globals.CFG.server_name
@@ -74,7 +75,6 @@ def run():
         try:
             while uii.ui_restart_server == False:
                 time.sleep(1.0)
-
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             run_server = False

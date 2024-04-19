@@ -7,7 +7,8 @@ ui_selected_enhancer = None
 ui_blend_ratio = None
 ui_input_thumbs = []
 ui_target_thumbs = []
-ui_camera_frame = None
+
+ui_live_cam_active = False
 
 
 
